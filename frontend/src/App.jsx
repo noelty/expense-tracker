@@ -6,47 +6,22 @@ function App() {
   const [expenseType, setExpenseType] = useState('');
   const [expenseAmount, setExpenseAmount] = useState('');
   const [capturedImage, setCapturedImage] = useState(null);
-  const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const streamRef = useRef(null);
 
-  const openCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: { facingMode: 'environment' }, 
-        audio: false 
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-      setIsCameraOpen(true);
-    } catch (error) {
-      console.error('Error accessing camera:', error);
-      alert('Unable to access camera. Please check permissions.');
-    }
-  };
+  const fileInputRef = useRef(null);
 
-  const closeCamera = () => {
-    if (streamRef.current) {
-      streamRef.current.getTracks().forEach(track => track.stop());
-    }
-    setIsCameraOpen(false);
-  };
+  // Handle photo captured from native camera app
+  const handleCapture = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  const capturePhoto = () => {
-    if (videoRef.current && canvasRef.current) {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(video, 0, 0);
-      const imageData = canvas.toDataURL('image/png');
-      setCapturedImage(imageData);
-      closeCamera();
-    }
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setCapturedImage(reader.result);
+    };
+    reader.readAsDataURL(file);
+
+    // Reset file input so the same file can be re-selected
+    e.target.value = '';
   };
 
   const handleSubmit = (e) => {
@@ -81,10 +56,20 @@ function App() {
         <form onSubmit={handleSubmit} className="expense-form">
           {/* Camera Section */}
           <div className="camera-section">
-            {!isCameraOpen && !capturedImage && (
-              <button 
-                type="button" 
-                onClick={openCamera} 
+            {/* Hidden file input — opens native camera on mobile */}
+            <input
+              type="file"
+              accept="image/*"
+              capture="environment"
+              ref={fileInputRef}
+              onChange={handleCapture}
+              style={{ display: 'none' }}
+            />
+
+            {!capturedImage && (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
                 className="camera-button"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -95,26 +80,12 @@ function App() {
               </button>
             )}
 
-            {isCameraOpen && (
-              <div className="camera-container">
-                <video ref={videoRef} autoPlay playsInline className="video-preview"></video>
-                <div className="camera-controls">
-                  <button type="button" onClick={capturePhoto} className="capture-btn">
-                    <div className="capture-ring"></div>
-                  </button>
-                  <button type="button" onClick={closeCamera} className="close-btn">
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {capturedImage && !isCameraOpen && (
+            {capturedImage && (
               <div className="image-preview">
                 <img src={capturedImage} alt="Captured receipt" />
-                <button 
-                  type="button" 
-                  onClick={() => setCapturedImage(null)} 
+                <button
+                  type="button"
+                  onClick={() => setCapturedImage(null)}
                   className="retake-btn"
                 >
                   Retake Photo
@@ -122,7 +93,6 @@ function App() {
               </div>
             )}
 
-            <canvas ref={canvasRef} style={{ display: 'none' }}></canvas>
           </div>
 
           {/* Input Fields */}
