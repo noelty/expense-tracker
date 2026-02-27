@@ -6,6 +6,7 @@ function App() {
   const [expenseType, setExpenseType] = useState('');
   const [expenseAmount, setExpenseAmount] = useState('');
   const [capturedImage, setCapturedImage] = useState(null);
+  const [capturedFile, setCapturedFile] = useState(null);
 
   const fileInputRef = useRef(null);
 
@@ -13,6 +14,9 @@ function App() {
   const handleCapture = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Store the actual File object for upload
+    setCapturedFile(file);
 
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -24,18 +28,35 @@ function App() {
     e.target.value = '';
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const expense = {
-      name: expenseName,
-      type: expenseType,
-      amount: expenseAmount,
-      image: capturedImage,
-      timestamp: new Date().toISOString()
-    };
-    console.log('Expense submitted:', expense);
+    const expenseForm = new FormData();
+    expenseForm.append('name', expenseName)
+    expenseForm.append('type', expenseType)
+    expenseForm.append('amount', expenseAmount)
+    expenseForm.append('timestamp', new Date().toISOString())
+
+    if (capturedFile) {
+      expenseForm.append('image', capturedFile)
+    }
+
+    console.log('Expense submitted:', expenseForm);
     // Add your submission logic here
     alert('Expense captured successfully!');
+    try {
+      const response = await fetch("http://192.168.1.106:3000/", {
+        method: "POST",
+        body: expenseForm
+      })
+      if (!response.ok) {
+        throw new Error(`response status: ${response.status}`)
+      }
+      const result = await response.json();
+      console.log(result);
+
+    } catch (error) {
+      console.error(error.message)
+    }
   };
 
   const resetForm = () => {
@@ -43,6 +64,7 @@ function App() {
     setExpenseType('');
     setExpenseAmount('');
     setCapturedImage(null);
+    setCapturedFile(null);
   };
 
   return (
@@ -60,7 +82,6 @@ function App() {
             <input
               type="file"
               accept="image/*"
-              capture="environment"
               ref={fileInputRef}
               onChange={handleCapture}
               style={{ display: 'none' }}

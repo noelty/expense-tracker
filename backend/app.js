@@ -1,16 +1,38 @@
-import { GoogleGenAI } from "@google/genai";
-import dotenv from 'dotenv';
-dotenv.config();
+import express from 'express'
+import cors from 'cors'
+import multer from 'multer'
 
-// The client gets the API key from the environment variable `GEMINI_API_KEY`.
-const ai = new GoogleGenAI({});
+const app = express()
+const port = 3000
 
-async function main() {
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: "Explain how AI works in a few words",
-  });
-  console.log(response.text);
-}
+app.use(express.json())
+app.use(cors({
+  origin: [
+    "http://localhost:8080",
+    "https://localhost:8080",
+    "https://192.168.1.106:8080",
+    "http://192.168.1.106:8080"
+  ]
+}))
 
-main();
+const upload = multer({ dest: "uploads/" })
+
+
+app.get('/', (req, res) => {
+  res.send('Hello World!')
+})
+
+app.post('/', upload.single('image'), (req, res) => {
+  try {
+    console.log(req.body)
+    console.log(req.file)
+    res.json({ message: `expense recieved` })
+  } catch (error) {
+    console.error('Error handling POST:', error)
+    res.status(500).json({ message: 'Server error' })
+  }
+})
+
+app.listen(port, () => {
+  console.log(`Example app listening on port ${port}`)
+})
