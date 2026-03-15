@@ -44,7 +44,7 @@ function App() {
     // Add your submission logic here
     alert('Expense captured successfully!');
     try {
-      const response = await fetch("http://192.168.1.106:3000/", {
+      const response = await fetch("http://10.145.202.50:3000/", {
         method: "POST",
         body: expenseForm
       })
