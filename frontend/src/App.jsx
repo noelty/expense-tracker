@@ -44,7 +44,7 @@ function App() {
     // Add your submission logic here
     alert('Expense captured successfully!');
     try {
-      const response = await fetch("http://10.145.202.50:3000/", {
+      const response = await fetch("https://expense-tracker-jeki.onrender.com", {
         method: "POST",
         body: expenseForm
       })

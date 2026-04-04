@@ -14,7 +14,8 @@ app.use(cors({
     "https://localhost:8080",
     "https://192.168.1.36:8080",
     "http://192.168.1.36:8080",
-    "https://10.145.202.50:8080/"
+    "https://10.145.202.50:8080/",
+    "https://expense-tracker-rho-neon-45.vercel.app/"
   ]
 }))
 
